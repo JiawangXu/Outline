@@ -48,10 +48,8 @@ class Outline_Menu(ttk.Frame):
         h, w = self.viewer.img_backup.shape[:2]
         zoom = 1.1 ** (event.delta//120)
         l, t, r, b = self.viewer.pic_range
-        print(l, t, r, b, x, y)
         l, t = max(int(x-(x-l)*zoom), 0), max(int(y-(y-t)*zoom), 0) 
-        r, b = min(int(l+(r-l)*zoom), h), min(int(t+(b-t)*zoom), w)
-        print(l, t, r, b)
+        r, b = min(int(x+(r-x)*zoom), h), min(int(y+(b-y)*zoom), w)
         self.viewer.show_image(pic_range=[l, t, r, b])
         self.viewer.canvas.bind("<MouseWheel>", self.zoom_wheel)
 

@@ -69,7 +69,6 @@ class Main(ttk.Window):
     ### buttton function ###
     def on_press(self, event):
         if event.keysym == 'Alt_L' or event.keysym == 'Alt_R':
-            # if self.fix.index(self.fix.select()) == 0:
             self.viewer.canvas.bind('<Motion>', self.Menu.outline_page.show_cross)
             self.viewer.canvas.bind('<Button-1>', self.Menu.outline_page.drag_tap)
             self.viewer.canvas.bind('<Button-3>', self.Menu.outline_page.zoom_tap)
@@ -108,14 +107,6 @@ class Main(ttk.Window):
             if target is None:
                 target = self
             target.unbind(key)
-            
-    def get_text_width(self, text, font = "TkDefaultFont"):
-        default_font = ttk.font.nametofont(font)
-        font_size = ttk.font.nametofont(font).actual()["size"]
-        default_font.configure(size=font_size)
-        text_width = default_font.measure(text)
-
-        return text_width
 
     def opendirectory(self, filepath=None):
         # 打开一张图片并显示
@@ -192,9 +183,6 @@ class Main(ttk.Window):
 
     
     
-
-
-
 if __name__ == '__main__':
     
     parser = argparse.ArgumentParser()
