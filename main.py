@@ -18,8 +18,6 @@ class Main(ttk.Window):
             os.mkdir(opt.save)
             
         self.grid_columnconfigure(0, weight=1)
-        # style = ttk.Style()
-        # style.theme_use('superhero')
 
         self.filename = ttk.StringVar(value='DICOM')
         self.change = ttk.IntVar(value=0)
@@ -35,14 +33,13 @@ class Main(ttk.Window):
 
         # trace variable ###
         self.filename.trace_add('write', self.viewer.openserie)
-        # self.change.trace_add("write", self.lframe.change_style)
 
         # buttons
         self.bind("<KeyPress>", self.on_press)
         self.bind("<Configure>", self.on_configure)
         self.bind("<KeyRelease>", self.release_press)
 
-        self.opendirectory([r"datas"])
+        self.opendirectory([r"E:\Master\outline_datas"])
 
     ### create frames ###
     def create_menu_frame(self):
@@ -143,6 +140,7 @@ class Main(ttk.Window):
                 files[v]['dicom'].append(k)
         
         for k in files:
+            files[k]["name"] = k
             files[k]['dicom'] = sorted(files[k]['dicom'], key=lambda x: paths[x][1])
         
         def get_common_parent(p):

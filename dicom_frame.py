@@ -79,7 +79,7 @@ class Dicom_Frame(ttk.Frame):
         dicom_label.pack(fill=BOTH, side=BOTTOM, expand=True)
 
         # pic show
-        self.viewer = dicom.Viewer(dicom_label, self.root, 100, 100)
+        self.viewer = dicom.Viewer(dicom_label, self.root)
         self.viewer.pack(fill=BOTH, expand=True, pady=10)
         
     def drop_inside_box(self, event):

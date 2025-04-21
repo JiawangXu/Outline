@@ -14,8 +14,6 @@ class Viewer(ttk.Frame):
             self, 
             master: ttk.Frame,
             root: ttk.Frame,
-            heigh: int,
-            width: int,
         ):
         super().__init__(master=master)
         
@@ -55,7 +53,7 @@ class Viewer(ttk.Frame):
 
         # parameters
         self.data_path = None
-        self.save_path = None
+        self.save_path = root.save_path
         self.mask_files = None
         self.e_x, self.e_y = None, None
         self.pic_ratio = None
@@ -84,8 +82,8 @@ class Viewer(ttk.Frame):
     ### button function ###
     def canvas_event(self, event):
         if self.e_x is not None:
-            self.record['ww'] = max(self.record['ww'] + event.x - self.e_x, 1)
-            self.record['wc'] += self.e_y - event.y
+            self.data['ww'] = max(self.data['ww'] + event.x - self.e_x, 1)
+            self.data['wc'] += self.e_y - event.y
             self.show_image()
         self.e_x, self.e_y = event.x, event.y
 
@@ -115,29 +113,8 @@ class Viewer(ttk.Frame):
         self.show_image()
 
     def save_msk(self, *args):
-        temp_dir = r'temp'
-        create_folder(temp_dir)
-        
-        if self.rvs:
-            self.mask = self.mask[::-1]
-        header = {
-            'dimension': 3, 
-            'sizes': self.mask.shape, 
-            'type': 'uint8',
-            'space': 'superior-left-posterior'
-            }
-        nrrd.write(fr'{temp_dir}/mask.nrrd', self.mask, header)
-
-        with open(fr'{temp_dir}/mask.json', 'w') as json_file:
-            json.dump(self.record, json_file)
-
-        if os.path.exists(fr'{self.save_path}/{self.path}.tar'):
-            os.remove(fr'{self.save_path}/{self.path}.tar')
-        else:
-            self.mask_files.append(self.path)
-        create_tar_file(temp_dir, fr'{self.save_path}/{self.path}.tar')
-        shutil.rmtree(temp_dir)
-        self.change.set(0)
+        image = np.array([self.get_raw_image(i)[:, :, 0] for i in self.dicom_paths])
+        np.savez(f"{self.save_path}/{self.data['name']}.npz", image=image, mask=self.mask, ww=self.data['ww'], wc=self.data['wc'])
 
 
     ### core function ###
@@ -159,15 +136,17 @@ class Viewer(ttk.Frame):
 
         if filepath is None:
             self.show_annotation(self.annotation)
-            if 'ww' in self.record and 'wc' in self.record:
-                ww, wc = self.record['ww'], self.record['wc']
+            if 'ww' in self.data and 'wc' in self.data:
+                ww, wc = self.data['ww'], self.data['wc']
             else:
                 ww, wc = self.annotation['00281051']['value'], self.annotation['00281050']['value']
                 ww, wc = ww[0] if isinstance(ww, list) else ww, wc[0] if isinstance(wc, list) else wc
-                self.record['ww'], self.record['wc'] = ww, wc
-        else:
+                self.data['ww'], self.data['wc'] = ww, wc
+        elif not hasattr(self, 'data'):
             ww, wc = self.annotation['00281051']['value'], self.annotation['00281050']['value']
             ww, wc = ww[0] if isinstance(ww, list) else ww, wc[0] if isinstance(wc, list) else wc
+        else:
+            ww, wc = self.data['ww'], self.data['wc']
         img_min = wc - ww // 2
         img_max = wc + ww // 2
         img[img < img_min] = img_min
@@ -210,7 +189,7 @@ class Viewer(ttk.Frame):
             return text_position
                 
         all_text = []
-        ww, wc = self.record['ww'], self.record['wc']
+        ww, wc = self.data['ww'], self.data['wc']
         
         text_to_check = [
             (   None, 
@@ -314,16 +293,21 @@ class Viewer(ttk.Frame):
     def openserie(self, *args):
         if self.root.all_data is not None:
 
-            filepath = self.root.filename.get()
-            data = self.root.all_data[filepath]
-            self.master.configure(text=filepath)
+            filename = self.root.filename.get()
+            self.data = self.root.all_data[filename]
+            self.master.configure(text=filename)
 
-            self.dicom_paths, self.mask_path = data['dicom'], data['mask']
-            if isinstance(self.mask_path, str):
-                self.mask, self.record = read_mask(self.mask_path)
+            self.dicom_paths, self.mask_path = self.data['dicom'], self.data['mask']
+            if os.path.exists(f"{self.save_path}/{self.data['name']}.npz"):
+                file = np.load(f"{self.save_path}/{self.data['name']}.npz")
+                self.mask, self.data['ww'], self.data['wc'] = file['mask'], file['ww'], file['wc']
                 self.img_range = get_mask_range(self.mask)
+            elif isinstance(self.mask_path, str):
+                self.mask, record = read_mask(self.mask_path)
+                self.img_range = get_mask_range(self.mask)
+                self.data.update(record)
             else:
-                self.mask, self.record = np.zeros([len(self.dicom_paths)-1, data["thumbnail"].shape[0], data["thumbnail"].shape[1]]), {}
+                self.mask = np.zeros([len(self.dicom_paths)-1, self.data["thumbnail"].shape[0], self.data["thumbnail"].shape[1]])
                 self.img_range = (0, len(self.dicom_paths)-1)
             self.crt_index.set(self.img_range[0])
             self.rvs = 0
