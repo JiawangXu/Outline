@@ -39,7 +39,7 @@ class Main(ttk.Window):
         self.bind("<Configure>", self.on_configure)
         self.bind("<KeyRelease>", self.release_press)
 
-        self.opendirectory([r"E:\Master\outline_datas"])
+        # self.opendirectory([r"E:\Master\outline_datas"])
 
     ### create frames ###
     def create_menu_frame(self):
@@ -197,6 +197,6 @@ if __name__ == '__main__':
 
     # window generate
     os.system("cls")
-    app = Main("dicom reader v0.4")
+    app = Main("Dicom Outline")
 
     app.mainloop()

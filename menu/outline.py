@@ -159,6 +159,7 @@ class Outline_Menu(ttk.Frame):
     def add_chosen(self):
         self.chosen(mod='add')
     def add_tap(self, event):
+        self.root.change.set(1)
         x, y = self.get_point(event)
         self.contour.append([[x, y]])
 
@@ -188,6 +189,7 @@ class Outline_Menu(ttk.Frame):
     def del_chosen(self):
         self.chosen(mod='del')
     def del_tap(self, event):
+        self.root.change.set(1)
         x, y = self.get_point(event)
         self.contour.append([[x, y]])
 
@@ -260,15 +262,3 @@ class Outline_Menu(ttk.Frame):
                 self.viewer.show_image()
             except:
                 pass
-
-    def check_save(self, filepath):
-        
-        new_window = ttk.Toplevel()
-        new_window.grab_set()
-        new_window.title('加载进度')
-        # 计算居中位置
-        x = self.master.winfo_masterx() + self.master.winfo_reqwidth() // 2 - new_window.winfo_reqwidth() // 2
-        y = self.master.winfo_mastery() + self.master.winfo_reqheight() // 2 - new_window.winfo_reqheight() // 2
-        new_window.geometry(f"+{x}+{y}")
-
-        ttk.Label(new_window, text='文件未保存').grid(row=0, column=1, pady=10)

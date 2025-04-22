@@ -55,10 +55,50 @@ class Thumbnail_Button(ttk.Button):
 
 
     def chosen_command(self,):
-        try:
-            old_filename = self.root.filename.get()
-            self.root.Thumbnail.buttons[old_filename].configure(style="Hover.TButton")
-        except:
-            pass
-        self.root.filename.set(self.filename)
-        self.config(style="Chosen.TButton")
+        if self.root.change.get():
+            self.check_save()
+        if not self.root.change.get():
+            try:
+                old_filename = self.root.filename.get()
+                self.root.Thumbnail.buttons[old_filename].configure(style="Hover.TButton")
+            except:
+                pass
+            self.root.filename.set(self.filename)
+            self.config(style="Chosen.TButton")
+
+    def check_save(self):
+        
+        new_window = ttk.Toplevel(self.root)
+        new_window.grab_set()
+        new_window.title()
+        # 计算居中位置
+        x = self.root.winfo_rootx() + self.root.winfo_reqwidth() // 2 - new_window.winfo_reqwidth() // 2
+        y = self.root.winfo_rooty() + self.root.winfo_reqheight() // 2 - new_window.winfo_reqheight() // 2
+        new_window.geometry(f"+{x}+{y}")
+
+        ttk.Label(new_window, text='文件未保存').grid(row=0, column=1, pady=10)
+
+        def confirm():
+            self.root.viewer.save_msk()
+            new_window.destroy()
+            new_window.grab_release()
+                    
+        def refuse():
+            self.root.change.set(0)
+            new_window.destroy()
+            new_window.grab_release()
+
+        def cancel():
+            new_window.destroy()
+            new_window.grab_release()
+
+        confirm_button = ttk.Button(new_window, text="保存", command=confirm)
+        confirm_button.grid(row=1, column=0, padx=10, pady=10)
+
+        confirm_button = ttk.Button(new_window, text="不保存", command=refuse)
+        confirm_button.grid(row=1, column=1, padx=10, pady=10)
+
+        confirm_button = ttk.Button(new_window, text="取消", command=cancel)
+        confirm_button.grid(row=1, column=2, padx=10, pady=10)
+        
+        self.root.wait_window(new_window)

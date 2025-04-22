@@ -80,12 +80,14 @@ class Viewer(ttk.Frame):
 
     ### button function ###
     def canvas_event(self, event):
-        x, y = event.x // 10, event.y //10
+        self.canvas.unbind("<B2-Motion>")
+        x, y = event.x, event.y
         if self.e_x is not None:
             self.data['ww'] = max(self.data['ww'] + x - self.e_x, 1)
             self.data['wc'] += self.e_y - y
             self.show_image()
         self.e_x, self.e_y = x, y
+        self.canvas.bind("<B2-Motion>", self.canvas_event)
 
     def release_event(self, event):
         self.change.set(1)
@@ -112,6 +114,7 @@ class Viewer(ttk.Frame):
         self.show_image()
 
     def save_msk(self, *args):
+        self.root.change.set(0)
         image = np.array([self.get_raw_image(i)[:, :, 0] for i in self.dicom_paths])
         np.savez(f"{self.save_path}/{self.data['name']}.npz", image=image, mask=self.mask, ww=self.data['ww'], wc=self.data['wc'])
 
@@ -341,41 +344,6 @@ class Viewer(ttk.Frame):
 
         return image
 
-    def check_save(self, filepath):
-        
-        new_window = ttk.Toplevel()
-        new_window.grab_set()
-        new_window.title('输入窗口')
-        # 计算居中位置
-        x = self.master.winfo_rootx() + self.master.winfo_reqwidth() // 2 - new_window.winfo_reqwidth() // 2
-        y = self.master.winfo_rooty() + self.master.winfo_reqheight() // 2 - new_window.winfo_reqheight() // 2
-        new_window.geometry(f"+{x}+{y}")
-
-        ttk.Label(new_window, text='文件未保存').grid(row=0, column=1, pady=10)
-
-        def confirm():
-            self.save_msk()
-            new_window.destroy()
-            new_window.grab_release()
-            
-        def refuse():
-            self.change.set(0)
-            self.openserie(filepath)
-            new_window.destroy()
-            new_window.grab_release()
-
-        def cancel():
-            new_window.destroy()
-            new_window.grab_release()
-
-        confirm_button = ttk.Button(new_window, text="保存", command=confirm)
-        confirm_button.grid(row=1, column=0, padx=10, pady=10)
-
-        confirm_button = ttk.Button(new_window, text="不保存", command=refuse)
-        confirm_button.grid(row=1, column=1, padx=10, pady=10)
-
-        confirm_button = ttk.Button(new_window, text="取消", command=cancel)
-        confirm_button.grid(row=1, column=2, padx=10, pady=10)
 
     def insert_data(self, data, parent='', parentiid='0x'):
         for idx, item in enumerate(data.values()):
