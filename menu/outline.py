@@ -20,27 +20,70 @@ class Outline_Menu(ttk.Frame):
         self.master = master
         self.viewer = root.viewer
         self.pic_range = None
+        
+        self.style = ttk.Style()
+        self.style.configure("Chosen.TButton", background="white", bordercolor="#17a2b8", padding=2, relief="solid")
 
-        Button(
+        self.add_b = Button(
             master=self, 
             icons=r'icons\add-outline',
             annotation='添加 (CTRL+左键)', 
-        ).pack(side=LEFT, padx=5, pady=5)
+            command=self.add_chosen
+        )
+        self.add_b.pack(side=LEFT, padx=5, pady=5)
         
-        Button(
+        self.del_b = Button(
             master=self, 
             icons=r'icons\del-outline',
             annotation='删除 (CTRL+右键)', 
+            command=self.del_chosen
+        )
+        self.del_b.pack(side=LEFT, padx=5, pady=5)
+
+        ttk.Separator(self, orient='vertical').pack(side=LEFT, padx=10, pady=5)
+        
+        self.drag_b = Button(
+            master=self, 
+            icons=r'icons\drag',
+            annotation='拖动 (ALT+左键)', 
+            command=self.drag_chosen
+        )
+        self.drag_b.pack(side=LEFT, padx=5, pady=5)
+
+        ttk.Separator(self, orient='vertical').pack(side=LEFT, padx=10, pady=5)
+
+        self.zoom_b = Button(
+            master=self, 
+            icons=r'icons\zoom',
+            annotation='缩放 (CTRL+右键)', 
+            command=self.zoom_chosen
+        )
+        self.zoom_b.pack(side=LEFT, padx=5, pady=5)
+        Button(
+            master=self, 
+            icons=r'icons\zoom-in',
+            annotation='缩放 (CTRL+滚轮)', 
+            command=self.zoom_in
+        ).pack(side=LEFT, padx=5, pady=5)
+        Button(
+            master=self, 
+            icons=r'icons\zoom-out',
+            annotation='缩放 (CTRL+滚轮)', 
+            command=self.zoom_out
         ).pack(side=LEFT, padx=5, pady=5)
 
+        ttk.Separator(self, orient='vertical').pack(side=LEFT, padx=10, pady=5)
+
+        self.chosen_b = None
+        self.chosen_func = None
         self.contour = []
         self.add_keys = ["<B1-Motion>", "<ButtonRelease-1>"]
         self.del_keys = ["<B3-Motion>", "<ButtonRelease-3>"]
         self.drag_keys = ["<B1-Motion>", "<ButtonRelease-1>"]
         self.zoom_keys = ["<B3-Motion>", "<ButtonRelease-3>"]
 
-        ttk.Separator(self, orient='vertical').pack(side=LEFT, padx=10, pady=5)
-        
+        self.drag_chosen()
+
     ### button function ###
     def zoom_wheel(self, event):
         self.viewer.canvas.unbind("<MouseWheel>")
@@ -52,7 +95,25 @@ class Outline_Menu(ttk.Frame):
         r, b = min(int(x+(r-x)*zoom), h), min(int(y+(b-y)*zoom), w)
         self.viewer.show_image(pic_range=[l, t, r, b])
         self.viewer.canvas.bind("<MouseWheel>", self.zoom_wheel)
+    def zoom_in(self):
+        h, w = self.viewer.img_backup.shape[:2]
+        zoom = 0.9
+        l, t, r, b = self.viewer.pic_range
+        x, y = (l+r)//2, (t+b)//2
+        l, t = max(int(x-(x-l)*zoom), 0), max(int(y-(y-t)*zoom), 0) 
+        r, b = min(int(x+(r-x)*zoom), h), min(int(y+(b-y)*zoom), w)
+        self.viewer.show_image(pic_range=[l, t, r, b])
+    def zoom_out(self):
+        h, w = self.viewer.img_backup.shape[:2]
+        zoom = 1.1
+        l, t, r, b = self.viewer.pic_range
+        x, y = (l+r)//2, (t+b)//2
+        l, t = max(int(x-(x-l)*zoom), 0), max(int(y-(y-t)*zoom), 0) 
+        r, b = min(int(x+(r-x)*zoom), h), min(int(y+(b-y)*zoom), w)
+        self.viewer.show_image(pic_range=[l, t, r, b])
 
+    def drag_chosen(self):
+        self.chosen(mod='drag')
     def drag_tap(self, event):
         self.viewer.canvas.unbind('<Motion>')
         self.drag_x, self.drag_y = self.get_point(event)
@@ -69,11 +130,12 @@ class Outline_Menu(ttk.Frame):
         self.viewer.pic_range = [l+x, t+y, r+x, b+y]
         self.viewer.draw_contour()
     def drag_rls(self, event):
-        self.viewer.canvas.bind('<Motion>', self.show_cross)
         self.viewer.canvas.bind(self.drag_keys[0], self.drag_func[0])
         self.viewer.canvas.bind(self.drag_keys[1], self.drag_func[1])
         self.drag_x, self.drag_y, self.drag_func, self.pic_range = None, None, None, None
 
+    def zoom_chosen(self):
+        self.chosen('zoom')
     def zoom_tap(self, event):
         self.viewer.canvas.unbind('<Motion>')
         self.zoom_x, self.zoom_y = self.get_point(event)
@@ -94,6 +156,8 @@ class Outline_Menu(ttk.Frame):
         self.viewer.canvas.bind(self.zoom_keys[1], self.zoom_func[1])
         self.zoom_x, self.zoom_y, self.zoom_func = None, None, None
 
+    def add_chosen(self):
+        self.chosen(mod='add')
     def add_tap(self, event):
         x, y = self.get_point(event)
         self.contour.append([[x, y]])
@@ -121,6 +185,8 @@ class Outline_Menu(ttk.Frame):
         self.viewer.canvas.bind(self.add_keys[1], self.add_func[1])
         self.contour = []
         
+    def del_chosen(self):
+        self.chosen(mod='del')
     def del_tap(self, event):
         x, y = self.get_point(event)
         self.contour.append([[x, y]])
@@ -161,7 +227,40 @@ class Outline_Menu(ttk.Frame):
     def show_cross(self, event):
         x, y = self.get_point(event)
         self.viewer.draw_contour(cross_loc=[x, y])
-    
+
+    def chosen(self, mod):
+        if mod in ["add", self.add_b]:
+            button, func = self.add_b, self.add_tap
+        elif mod in ["del", self.del_b]:
+            button, func = self.del_b, self.del_tap
+            self.del_keys = ["<B1-Motion>", "<ButtonRelease-1>"]
+        elif mod in ["drag", self.drag_b]: 
+            button, func = self.drag_b, self.drag_tap
+        elif mod in ["zoom", self.zoom_b]:
+            self.viewer.canvas.bind('<Motion>', self.show_cross)
+            button, func = self.zoom_b, self.zoom_tap
+            self.zoom_keys = ["<B1-Motion>", "<ButtonRelease-1>"]
+
+        if self.chosen_b is not None:
+            self.chosen_b.config(style="Custom.TButton")
+            self.viewer.canvas.bind(*self.chosen_func)
+        if self.chosen_b == button and mod != 'drag':
+            self.chosen_b=None
+            self.chosen_func = None
+            self.del_keys = ["<B3-Motion>", "<ButtonRelease-3>"]
+            self.zoom_keys = ["<B3-Motion>", "<ButtonRelease-3>"]
+        else:
+            if mod in ["zoom", self.zoom_b]: self.viewer.canvas.bind('<Motion>', self.show_cross)
+            if self.chosen_b in ["zoom", self.zoom_b]: self.viewer.canvas.unbind('<Motion>')
+            button.config(style="Chosen.TButton")
+            self.chosen_b = button
+            self.chosen_func = ["<Button-1>", self.viewer.canvas.bind("<Button-1>")]
+            self.viewer.canvas.bind('<Button-1>', func)
+            try:
+                self.viewer.show_image()
+            except:
+                pass
+
     def check_save(self, filepath):
         
         new_window = ttk.Toplevel()

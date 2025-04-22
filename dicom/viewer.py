@@ -58,7 +58,6 @@ class Viewer(ttk.Frame):
         self.e_x, self.e_y = None, None
         self.pic_ratio = None
         self.pic_range = [0, 0, -1,-1] # left, top, right, bottom
-        self.mdf = {}
 
     ### button bind ###
     def buttons(self):
@@ -81,14 +80,14 @@ class Viewer(ttk.Frame):
 
     ### button function ###
     def canvas_event(self, event):
+        x, y = event.x // 10, event.y //10
         if self.e_x is not None:
-            self.data['ww'] = max(self.data['ww'] + event.x - self.e_x, 1)
-            self.data['wc'] += self.e_y - event.y
+            self.data['ww'] = max(self.data['ww'] + x - self.e_x, 1)
+            self.data['wc'] += self.e_y - y
             self.show_image()
-        self.e_x, self.e_y = event.x, event.y
+        self.e_x, self.e_y = x, y
 
     def release_event(self, event):
-        self.mdf['wcww'] = 1
         self.change.set(1)
         self.e_x, self.e_y = None, None
 

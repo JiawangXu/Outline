@@ -202,6 +202,9 @@ def read_mask(path):
     mask = np.transpose(mask, [2, 0, 1])
     mask[mask > 0] = 1
 
+    if os.path.exists(r'temp'):
+        shutil.rmtree(r'temp')
+
     return np.squeeze(np.array(mask[::-1], dtype=np.uint8)), record
 
 
@@ -270,7 +273,6 @@ class Button(ttk.Button):
     def disactive(self, ):
         self.unbind("<Enter>")
         self.unbind("<Leave>")
-
 
     def on_enter(self, event):
         x, y, _, _ = self.bbox("insert")

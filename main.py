@@ -65,6 +65,8 @@ class Main(ttk.Window):
 
     ### buttton function ###
     def on_press(self, event):
+        if self.Menu.outline_page.chosen_b is not None:
+            self.Menu.outline_page.chosen(self.Menu.outline_page.chosen_b)
         if event.keysym == 'Alt_L' or event.keysym == 'Alt_R':
             self.viewer.canvas.bind('<Motion>', self.Menu.outline_page.show_cross)
             self.viewer.canvas.bind('<Button-1>', self.Menu.outline_page.drag_tap)
@@ -86,6 +88,7 @@ class Main(ttk.Window):
             self.viewer.canvas.unbind('<Button-3>')
         self.bind("<KeyPress>", self.on_press)
         self.viewer.show_image()
+        self.Menu.outline_page.chosen(mod='drag')
         
     def on_configure(self, event, *args):
         if event.widget == self:
