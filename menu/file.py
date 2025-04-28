@@ -21,7 +21,16 @@ class File_Menu(ttk.Frame):
         Button(
             master=self, 
             icons=r'icons\open_folder',
-            annotation='打开文件', 
+            annotation='Open Folder',
+            command=self.root.opendirectory
+        ).pack(side=LEFT, padx=5, pady=5)
+
+        ttk.Separator(self, orient='vertical').pack(side=LEFT, padx=10, pady=5)
+
+        Button(
+            master=self, 
+            icons=r'icons\save',
+            annotation='Save (CTRL + s)',
             command=self.root.opendirectory
         ).pack(side=LEFT, padx=5, pady=5)
 
@@ -34,13 +43,17 @@ class File_Menu(ttk.Frame):
     ### utilitarian fuction ###
     
     def check_save(self, filepath):
-        
+        """
+        Displays a warning window when attempting to load new files without saving current changes.
+
+        Parameters:
+        - filepath: Path to the file being loaded
+        """
         new_window = ttk.Toplevel()
         new_window.grab_set()
-        new_window.title('加载进度')
-        # 计算居中位置
+        new_window.title('Loading Progress')
         x = self.master.winfo_masterx() + self.master.winfo_reqwidth() // 2 - new_window.winfo_reqwidth() // 2
         y = self.master.winfo_mastery() + self.master.winfo_reqheight() // 2 - new_window.winfo_reqheight() // 2
         new_window.geometry(f"+{x}+{y}")
 
-        ttk.Label(new_window, text='文件未保存').grid(row=0, column=1, pady=10)
+        ttk.Label(new_window, text='File not saved').grid(row=0, column=1, pady=10)

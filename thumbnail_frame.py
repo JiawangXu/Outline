@@ -40,6 +40,10 @@ class Thumbnail_Frame(ttk.Frame):
         self.canvas.pack(side=LEFT, fill=BOTH)
     
     def set_thumbnail(self, ):
+        """
+         Set thumbnails by clearing existing buttons and creating new ones based on the data in the root container.
+         Automatically selects the first button after creation.
+         """
         for button in self.buttons.values():
             button.pack_forget()
         self.buttons = {}

@@ -43,16 +43,25 @@ class Main(ttk.Window):
 
     ### create frames ###
     def create_menu_frame(self):
+        """
+        Creates and initializes the menu frame component.
+        """
         from menu_frame import Menu_Frame
         self.Menu = Menu_Frame(self, self)
         self.Menu.grid(row=0, column=0, sticky="nsew")
 
     def create_thumbnail_frame(self):
+        """
+        Creates and initializes the thumbnail navigation frame.
+        """
         from thumbnail_frame import Thumbnail_Frame
         self.Thumbnail = Thumbnail_Frame(self.dicom_all_, self)
         self.Thumbnail.pack(side=LEFT, fill=Y)
 
     def create_dicom_frame(self):
+        """
+        Creates and initializes the main DICOM viewer frame.
+        """
         from dicom_frame import Dicom_Frame
         self.Dicom = Dicom_Frame(self.dicom_all_, self)
         self.Dicom.pack(side=RIGHT, fill=BOTH, expand=True)
@@ -65,6 +74,11 @@ class Main(ttk.Window):
 
     ### buttton function ###
     def on_press(self, event):
+        """
+        Handles key press events for tool mode switching.
+        Args:
+            event: Keyboard event data
+        """
         if self.Menu.outline_page.chosen_b is not None:
             self.Menu.outline_page.chosen(self.Menu.outline_page.chosen_b)
         if event.keysym == 'Alt_L' or event.keysym == 'Alt_R':
@@ -78,6 +92,11 @@ class Main(ttk.Window):
         self.unbind("<KeyPress>")
             
     def release_press(self, event):
+        """
+        Handles key release events for tool mode cleanup.
+        Args:
+            event: Keyboard event data
+        """
         if event.keysym == 'Alt_L' or event.keysym == 'Alt_R':
             self.viewer.canvas.unbind('<Motion>')
             self.viewer.canvas.unbind('<Button-1>')
@@ -91,25 +110,44 @@ class Main(ttk.Window):
         self.Menu.outline_page.chosen(mod='drag')
         
     def on_configure(self, event, *args):
+        """
+        Handles window resize events.
+        Args:
+            event: Resize event data
+        """
         if event.widget == self:
             if self.viewer.dicom_paths is not None:
                 self.viewer.show_image()
 
     ### utilitarian function ###
     def binds(self, buttons: list):
+        """
+        Binds multiple event handlers to UI elements.
+        Args:
+            buttons (list): List of (target, event, handler) tuples
+        """
         for target, key, func in buttons:
             if target is None:
                 target = self
             target.bind(key, func)
             
     def unbinds(self, buttons: list):
+        """
+        Unbinds multiple event handlers from UI elements.
+        Args:
+            buttons (list): List of (target, event, handler) tuples
+        """
         for target, key, func in buttons:
             if target is None:
                 target = self
             target.unbind(key)
 
     def opendirectory(self, filepath=None):
-        # 打开一张图片并显示
+        """
+        Opens and loads DICOM directory.
+        Args:
+            filepath (str/list): Optional path(s) to DICOM files
+        """
 
         if filepath is None:
             filepath = filedialog.askdirectory()
@@ -123,6 +161,14 @@ class Main(ttk.Window):
         self.Thumbnail.set_thumbnail()
 
     def get_paths(self, father_paths: str, ext=['dcm', 'DCM']):
+        """
+        Scans directories and organizes DICOM files with associated masks.
+        Args:
+            father_paths (str/list): Root directory path(s)
+            ext (list): Valid DICOM file extensions
+        Returns:
+            dict: Organized DICOM series data with metadata
+        """
         files = []
         paths = {}
 

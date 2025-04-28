@@ -6,6 +6,17 @@ import cv2
 from PIL import Image, ImageTk
 
 class Thumbnail_Button(ttk.Button):
+    """
+    Initializes a thumbnail button with image preview and metadata display.
+
+    Args:
+        master: Parent widget
+        root: Main application window
+        canvas: Canvas for display
+        key: Unique identifier for the thumbnail
+        value: Dictionary containing thumbnail data
+        type: Type of thumbnail (default: 'filepath')
+    """
     def __init__(  
             self,
             master,
@@ -15,7 +26,7 @@ class Thumbnail_Button(ttk.Button):
             value, 
             type='filepath',   
     ):
-        
+
         self.style = ttk.Style()
         self.style.configure("Hover.TButton", background="white", bordercolor="white", padding=2, relief='flat')
         self.style.map("Hover.TButton",
@@ -55,6 +66,10 @@ class Thumbnail_Button(ttk.Button):
 
 
     def chosen_command(self,):
+        """
+        Handles thumbnail selection with unsaved changes verification.
+        Updates button styling and loads selected DICOM series.
+        """
         if self.root.change.get():
             self.check_save()
         if not self.root.change.get():
@@ -67,16 +82,18 @@ class Thumbnail_Button(ttk.Button):
             self.config(style="Chosen.TButton")
 
     def check_save(self):
-        
+        """
+        Displays save confirmation dialog when unsaved changes exist.
+        Provides options to save, discard, or cancel the operation.
+        """
         new_window = ttk.Toplevel(self.root)
         new_window.grab_set()
         new_window.title()
-        # 计算居中位置
         x = self.root.winfo_rootx() + self.root.winfo_reqwidth() // 2 - new_window.winfo_reqwidth() // 2
         y = self.root.winfo_rooty() + self.root.winfo_reqheight() // 2 - new_window.winfo_reqheight() // 2
         new_window.geometry(f"+{x}+{y}")
 
-        ttk.Label(new_window, text='文件未保存').grid(row=0, column=1, pady=10)
+        ttk.Label(new_window, text='File not saved').grid(row=0, column=1, pady=10)
 
         def confirm():
             self.root.viewer.save_msk()
@@ -92,13 +109,13 @@ class Thumbnail_Button(ttk.Button):
             new_window.destroy()
             new_window.grab_release()
 
-        confirm_button = ttk.Button(new_window, text="保存", command=confirm)
+        confirm_button = ttk.Button(new_window, text="confirm", command=confirm)
         confirm_button.grid(row=1, column=0, padx=10, pady=10)
 
-        confirm_button = ttk.Button(new_window, text="不保存", command=refuse)
+        confirm_button = ttk.Button(new_window, text="refuse", command=refuse)
         confirm_button.grid(row=1, column=1, padx=10, pady=10)
 
-        confirm_button = ttk.Button(new_window, text="取消", command=cancel)
+        confirm_button = ttk.Button(new_window, text="Cancel", command=cancel)
         confirm_button.grid(row=1, column=2, padx=10, pady=10)
         
         self.root.wait_window(new_window)

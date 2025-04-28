@@ -10,13 +10,20 @@ import warnings
 warnings.filterwarnings("ignore")
 
 class Viewer(ttk.Frame):
+    """
+    The Viewer class is a custom frame used for displaying and processing DICOM images.
+
+    Parameters:
+    - master: The parent frame.
+    - root: The root window.
+    """
     def __init__(
-            self, 
+            self,
             master: ttk.Frame,
             root: ttk.Frame,
         ):
         super().__init__(master=master)
-        
+
         self.root = root
         self.master = master
         self.change = root.change
@@ -27,7 +34,7 @@ class Viewer(ttk.Frame):
         self.yellow = (255, 255, 40)
 
         self.dicom_paths = None
-        
+
         # slider bar
         self.crt_index = ttk.IntVar()
         self.slider_para = {
@@ -61,6 +68,12 @@ class Viewer(ttk.Frame):
 
     ### button bind ###
     def buttons(self):
+        """
+        Returns a list of button bindings.
+
+        Returns:
+        - A list of tuples containing target widget, key, and function.
+        """
         return [
             [None, '<Up>', self.move_slider],
             [None, '<Down>', self.move_slider],
@@ -72,14 +85,32 @@ class Viewer(ttk.Frame):
 
     ### initial function ###
     def set_modify(self, page):
+        """
+        Sets the modify page.
+
+        Parameters:
+        - page: The modify page object.
+        """
         self.modify_page = page
-        
+
     def set_check(self, page):
+        """
+        Sets the check page.
+
+        Parameters:
+        - page: The check page object.
+        """
         self.check_page = page
 
 
     ### button function ###
     def canvas_event(self, event):
+        """
+        Handles mouse movement events on the canvas.
+
+        Parameters:
+        - event: The event object.
+        """
         self.canvas.unbind("<B2-Motion>")
         x, y = event.x, event.y
         if self.e_x is not None:
@@ -90,10 +121,22 @@ class Viewer(ttk.Frame):
         self.canvas.bind("<B2-Motion>", self.canvas_event)
 
     def release_event(self, event):
+        """
+        Handles mouse release events on the canvas.
+
+        Parameters:
+        - event: The event object.
+        """
         self.change.set(1)
         self.e_x, self.e_y = None, None
 
     def move_slider(self, event):
+        """
+        Handles slider movement events.
+
+        Parameters:
+        - event: The event object.
+        """
         self.canvas.unbind("<MouseWheel>")
         current_value = self.crt_index.get()
         if event.keysym == 'Up':
@@ -108,12 +151,21 @@ class Viewer(ttk.Frame):
         self.canvas.bind("<MouseWheel>", self.move_slider)
 
     def move(self, value):
+        """
+        Handles changes in the slider value.
+
+        Parameters:
+        - value: The new value of the slider.
+        """
         value = round(float(value))
         self.slider.config(bootstyle=SUCCESS if self.img_range[0]<=value<=self.img_range[1] else DANGER)
         self.crt_index.set(value)
         self.show_image()
 
     def save_msk(self, *args):
+        """
+        Saves the mask and associated image data into a .npz file.
+        """
         self.root.change.set(0)
         image = np.array([self.get_raw_image(i)[:, :, 0] for i in self.dicom_paths])
         np.savez(f"{self.save_path}/{self.data['name']}.npz", image=image, mask=self.mask, ww=self.data['ww'], wc=self.data['wc'])
@@ -121,14 +173,23 @@ class Viewer(ttk.Frame):
 
     ### core function ###
     def get_raw_image(self, filepath=None):
+        """
+        Retrieves the raw DICOM image.
+
+        Parameters:
+        - filepath: The path to the DICOM file. If None, uses the current index file.
+
+        Returns:
+        - The raw image array.
+        """
         dicom_slice = pydicom.dcmread(self.dicom_paths[self.crt_index.get()] if filepath is None else filepath)
-        
+
         not_save_tag = ['Pixel Data']
         encodetype = dicom_slice[0x00080005].value if 0x00080005 in dicom_slice else None
         self.annotation = get_annotation(dicom_slice, encodetype, not_save_tag)
 
         img = np.array(dicom_slice.pixel_array, dtype=np.float64)
-        
+
         try:
             itcp = self.annotation['00281052']['value']
             slope = self.annotation['00281053']['value']
@@ -158,8 +219,18 @@ class Viewer(ttk.Frame):
         self.dicom_data = dicom_slice
         img = np.squeeze(img.astype(np.uint8))
         return np.stack([img, img, img], axis=-1)
-    
+
     def set_base_tags(self, img=None, padding=8):
+        """
+        Sets base tags on the image.
+
+        Parameters:
+        - img: The image array. If None, uses the current image.
+        - padding: The padding for the tags. Default is 8.
+
+        Returns:
+        - The image array with base tags.
+        """
         img = img if img is not None else self.img.copy()
         fontheight = min(self.canvas_frame.winfo_height(), self.canvas_frame.winfo_width()) // 30
         padding = min(self.canvas_frame.winfo_height(), self.canvas_frame.winfo_width()) // 80
@@ -171,9 +242,19 @@ class Viewer(ttk.Frame):
             'nw': 0,
             'ne': 0,
             'sw': img.shape[0] - padding,
-            'se': img.shape[0] - padding, 
+            'se': img.shape[0] - padding,
         }
         def get_text_position(t, pst):
+            """
+             Calculates the position to place text on the image based on the given position type.
+
+             Parameters:
+             - t: The text to be placed.
+             - pst: The position type ('nw', 'ne', 'sw', 'se').
+
+             Returns:
+             - The position coordinates as a list [x, y].
+             """
             text_size = font.getmask(text).size
             if pst == 'nw':
                 text_position = [padding, positions[pst]]
@@ -184,51 +265,51 @@ class Viewer(ttk.Frame):
             elif pst == 'sw':
                 positions[pst] = positions[pst] - text_size[1] - padding
                 text_position = [padding, positions[pst]]
-            elif pst == 'se':  
+            elif pst == 'se':
                 positions[pst] = positions[pst] - text_size[1] - padding
                 text_position = [img.shape[1] - text_size[0] - padding, positions[pst]]
-              
+
             return text_position
-                
+
         all_text = []
         ww, wc = self.data['ww'], self.data['wc']
-        
+
         text_to_check = [
-            (   None, 
-                lambda v1: f'Im:{self.crt_index.get()+1}/{len(self.dicom_paths)}', 
+            (   None,
+                lambda v1: f'Im:{self.crt_index.get()+1}/{len(self.dicom_paths)}',
                 self.red, 'nw'),
-            (   ['00200011'], 
-                lambda v1: f'Se:{decode_func(v1)}', 
+            (   ['00200011'],
+                lambda v1: f'Se:{decode_func(v1)}',
                 self.yellow, 'nw'),
-            (   ['00180050', '00201041'], 
-                lambda v1, v2: f'T:{float(decode_func(v1))}mm L:{float(decode_func(v2))}', 
+            (   ['00180050', '00201041'],
+                lambda v1, v2: f'T:{float(decode_func(v1))}mm L:{float(decode_func(v2))}',
                 self.yellow, 'sw'),
-            (   None, 
-                lambda v1: f'WW:{ww} WC:{wc}', 
+            (   None,
+                lambda v1: f'WW:{ww} WC:{wc}',
                 self.red, 'sw'),
-            (   ['00100020'], 
-                lambda v1: f'{decode_func(v1)}', 
+            (   ['00100020'],
+                lambda v1: f'{decode_func(v1)}',
                 self.yellow, 'ne'),
-            (   ['00101001', '00100040'], 
-                lambda v1, v2: f'{decode_func(v1)}  {"女" if decode_func(v2)=="F" else "男"}', 
+            (   ['00101001', '00100040'],
+                lambda v1, v2: f'{decode_func(v1)}  {"女" if decode_func(v2)=="F" else "男"}',
                 self.yellow, 'ne'),
-            (   ['00100010'], 
-                lambda v1: f'{decode_func(v1)}', 
+            (   ['00100010'],
+                lambda v1: f'{decode_func(v1)}',
                 self.yellow, 'ne'),
-            (   ['00100030'], 
-                lambda v1: f'{self.unify_date_format(decode_func(v1))}', 
+            (   ['00100030'],
+                lambda v1: f'{self.unify_date_format(decode_func(v1))}',
                 self.yellow, 'ne'),
-            (   ['00080080'], 
-                lambda v1: f'{decode_func(v1)}', 
+            (   ['00080080'],
+                lambda v1: f'{decode_func(v1)}',
                 self.yellow, 'ne'),
-            (   ['00200010'], 
-                lambda v1: f'{decode_func(v1)}', 
+            (   ['00200010'],
+                lambda v1: f'{decode_func(v1)}',
                 self.yellow, 'ne'),
-            (   ['0008103e'], 
-                lambda v1: f'{decode_func(v1)}', 
+            (   ['0008103e'],
+                lambda v1: f'{decode_func(v1)}',
                 self.yellow, 'ne'),
-            (   ['00400244', '00400245'], 
-                lambda v1, v2: f'{self.unify_date_format(decode_func(v1))} {self.unify_date_format(decode_func(v2), sep=":")}', 
+            (   ['00400244', '00400245'],
+                lambda v1, v2: f'{self.unify_date_format(decode_func(v1))} {self.unify_date_format(decode_func(v2), sep=":")}',
                 self.yellow, 'se'),
         ]
 
@@ -245,10 +326,15 @@ class Viewer(ttk.Frame):
         return np.array(image)
 
     def show_image(self, pic_range=None):
+        """
+        Displays the image on the canvas with optional cropping.
 
+        Parameters:
+        - pic_range: The range for the image.
+        """
         self.drawing = False
         img = self.get_raw_image()
-        
+
         msk = self.mask[self.crt_index.get()].copy()
         if np.sum(msk):
             contours, _ = cv2.findContours(msk, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
@@ -261,7 +347,16 @@ class Viewer(ttk.Frame):
         self.canvas.config(image=self.image)
 
     def draw_contour(self, add_mask=None, del_mask=None, zoom_range=None, pic_range=None, cross_loc=None):
+        """
+        Draws contours, zoom box, or crosshairs on the image with visual feedback.
 
+        Parameters:
+        - add_mask: Contours to draw in green (added regions)
+        - del_mask: Contours to draw in red (removed regions)
+        - zoom_range: (x1,y1,x2,y2) coordinates for zoom box
+        - pic_range: Custom display area [left,top,right,bottom]
+        - cross_loc: (x,y) coordinates for crosshair center
+        """
         if hasattr(self, "drawing") and self.drawing:
             return
         self.drawing = True  # 标记正在绘制
@@ -284,15 +379,18 @@ class Viewer(ttk.Frame):
             cv2.line(img, (0, y), (img.shape[0], y), (0, 255, 0), 1, cv2.LINE_8)
 
         img = self.resize(img, pic_range=pic_range)
-        
+
         if self.drawing:
             img = self.set_base_tags(img)
             self.image = ImageTk.PhotoImage(Image.fromarray(img))
             self.canvas.config(image=self.image)
 
             self.drawing = False
-    
+
     def openserie(self, *args):
+        """
+        Opens a DICOM series.
+        """
         if self.root.all_data is not None:
 
             filename = self.root.filename.get()
@@ -321,9 +419,19 @@ class Viewer(ttk.Frame):
 
     ### utilitarian function ###
     def resize(self, img: np.ndarray, pic_range=None):
+        """
+         Resizes the image.
+
+         Parameters:
+         - img: The image array.
+         - pic_range: The image range. Default is None.
+
+         Returns:
+         - The resized image array.
+         """
         self.canvas_frame.update()
         width, height = self.canvas_frame.winfo_width(), self.canvas_frame.winfo_height()
-        
+
         l, t, r, b = self.pic_range if pic_range is None else pic_range
         b = img.shape[0] if b==-1 else b
         r = img.shape[1] if r==-1 else r
@@ -346,6 +454,14 @@ class Viewer(ttk.Frame):
 
 
     def insert_data(self, data, parent='', parentiid='0x'):
+        """
+        Inserts data into the annotation tree view.
+
+        Parameters:
+        - data: The data dictionary.
+        - parent: The parent node ID. Default is an empty string.
+        - parentiid: The parent node's IID. Default is '0x'.
+        """
         for idx, item in enumerate(data.values()):
             if parent == '':
                 iid = parentiid + rearrange_numbers(str(item['tag']))
@@ -358,6 +474,12 @@ class Viewer(ttk.Frame):
                 self.insert_data(item["children"], child, iid)
 
     def show_annotation(self, datas):
+        """
+        Displays annotation data.
+
+        Parameters:
+        - datas: The annotation data dictionary.
+        """
         current_selection = self.root.annotation.selection()
         chidren = self.root.annotation.get_children('')
         flag = False
@@ -391,9 +513,19 @@ class Viewer(ttk.Frame):
             chidren = self.root.annotation.get_children('')
             idx = chidren.index(current_selection) - idx
             self.root.annotation.yview_moveto(idx/len(chidren))
-    
+
     @staticmethod
     def unify_date_format(date_string, sep='/'):
+        """
+        Unifies the date format.
+
+        Parameters:
+        - date_string: The date string.
+        - sep: The date separator. Default is '/'.
+
+        Returns:
+        - The formatted date string.
+        """
         sep_char = []
         for char in date_string:
             if not char.isdigit():
@@ -402,4 +534,3 @@ class Viewer(ttk.Frame):
             date_string = ''.join(date_string.split(char))
         a, b, c = date_string[:-4], date_string[-4:-2], date_string[-2:]
         return sep.join([a, b, c])
-    

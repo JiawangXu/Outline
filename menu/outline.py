@@ -27,7 +27,7 @@ class Outline_Menu(ttk.Frame):
         self.add_b = Button(
             master=self, 
             icons=r'icons\add-outline',
-            annotation='添加 (CTRL+左键)', 
+            annotation='Add (CTRL + Left Click)',
             command=self.add_chosen
         )
         self.add_b.pack(side=LEFT, padx=5, pady=5)
@@ -35,7 +35,7 @@ class Outline_Menu(ttk.Frame):
         self.del_b = Button(
             master=self, 
             icons=r'icons\del-outline',
-            annotation='删除 (CTRL+右键)', 
+            annotation='Delete (CTRL + Right Click)',
             command=self.del_chosen
         )
         self.del_b.pack(side=LEFT, padx=5, pady=5)
@@ -45,7 +45,7 @@ class Outline_Menu(ttk.Frame):
         self.drag_b = Button(
             master=self, 
             icons=r'icons\drag',
-            annotation='拖动 (ALT+左键)', 
+            annotation='Drag (ALT + Left Click)',
             command=self.drag_chosen
         )
         self.drag_b.pack(side=LEFT, padx=5, pady=5)
@@ -55,20 +55,20 @@ class Outline_Menu(ttk.Frame):
         self.zoom_b = Button(
             master=self, 
             icons=r'icons\zoom',
-            annotation='缩放 (CTRL+右键)', 
+            annotation='Zoom into Area (ALT + Right Click)',
             command=self.zoom_chosen
         )
         self.zoom_b.pack(side=LEFT, padx=5, pady=5)
         Button(
             master=self, 
             icons=r'icons\zoom-in',
-            annotation='缩放 (CTRL+滚轮)', 
+            annotation='Zoom in (ALT + Mouse Wheel)',
             command=self.zoom_in
         ).pack(side=LEFT, padx=5, pady=5)
         Button(
             master=self, 
             icons=r'icons\zoom-out',
-            annotation='缩放 (CTRL+滚轮)', 
+            annotation='Zoom out (ALT + Mouse Wheel)',
             command=self.zoom_out
         ).pack(side=LEFT, padx=5, pady=5)
 
@@ -86,6 +86,9 @@ class Outline_Menu(ttk.Frame):
 
     ### button function ###
     def zoom_wheel(self, event):
+        """
+        Handles zooming via mouse wheel with center-point preservation.
+        """
         self.viewer.canvas.unbind("<MouseWheel>")
         x, y = self.get_point(event)
         h, w = self.viewer.img_backup.shape[:2]
@@ -96,6 +99,9 @@ class Outline_Menu(ttk.Frame):
         self.viewer.show_image(pic_range=[l, t, r, b])
         self.viewer.canvas.bind("<MouseWheel>", self.zoom_wheel)
     def zoom_in(self):
+        """
+        Zooms in the image view by 10% centered on current view.
+        """
         h, w = self.viewer.img_backup.shape[:2]
         zoom = 0.9
         l, t, r, b = self.viewer.pic_range
@@ -104,6 +110,9 @@ class Outline_Menu(ttk.Frame):
         r, b = min(int(x+(r-x)*zoom), h), min(int(y+(b-y)*zoom), w)
         self.viewer.show_image(pic_range=[l, t, r, b])
     def zoom_out(self):
+        """
+        Zooms out the image view by 10% centered on current view.
+        """
         h, w = self.viewer.img_backup.shape[:2]
         zoom = 1.1
         l, t, r, b = self.viewer.pic_range
@@ -113,8 +122,14 @@ class Outline_Menu(ttk.Frame):
         self.viewer.show_image(pic_range=[l, t, r, b])
 
     def drag_chosen(self):
+        """
+        Activates image dragging mode.
+        """
         self.chosen(mod='drag')
     def drag_tap(self, event):
+        """
+        Initializes drag operation starting point.
+        """
         self.viewer.canvas.unbind('<Motion>')
         self.drag_x, self.drag_y = self.get_point(event)
         self.drag_func = [self.viewer.canvas.bind(i) for i in self.drag_keys]
@@ -123,6 +138,9 @@ class Outline_Menu(ttk.Frame):
         self.viewer.canvas.bind(self.drag_keys[0], self.drag_mov)
         self.viewer.canvas.bind(self.drag_keys[1], self.drag_rls)
     def drag_mov(self, event):
+        """
+        Updates image position during drag operation.
+        """
         x, y = self.get_point(event)
         l, t, r, b = self.pic_range
         width, height = self.viewer.img_backup.shape[:2]
@@ -130,13 +148,22 @@ class Outline_Menu(ttk.Frame):
         self.viewer.pic_range = [l+x, t+y, r+x, b+y]
         self.viewer.draw_contour()
     def drag_rls(self, event):
+        """
+        Finalizes drag operation and cleans up event bindings.
+        """
         self.viewer.canvas.bind(self.drag_keys[0], self.drag_func[0])
         self.viewer.canvas.bind(self.drag_keys[1], self.drag_func[1])
         self.drag_x, self.drag_y, self.drag_func, self.pic_range = None, None, None, None
 
     def zoom_chosen(self):
+        """
+        Activates rectangular zoom selection mode.
+        """
         self.chosen('zoom')
     def zoom_tap(self, event):
+        """
+        Initializes zoom rectangle starting point.
+        """
         self.viewer.canvas.unbind('<Motion>')
         self.zoom_x, self.zoom_y = self.get_point(event)
         self.zoom_func = [self.viewer.canvas.bind(i) for i in self.zoom_keys]
@@ -144,9 +171,15 @@ class Outline_Menu(ttk.Frame):
         self.viewer.canvas.bind(self.zoom_keys[0], self.zoom_mov)
         self.viewer.canvas.bind(self.zoom_keys[1], self.zoom_rls)
     def zoom_mov(self, event):
+        """
+        Updates zoom rectangle during mouse movement.
+        """
         x, y = self.get_point(event)
         self.viewer.draw_contour(zoom_range=[self.zoom_x, self.zoom_y, x, y])
     def zoom_rls(self, event):
+        """
+        Applies zoom to selected area and cleans up event bindings.
+        """
         x, y = self.get_point(event)
 
         self.viewer.show_image(pic_range=[min(x, self.zoom_x), min(y, self.zoom_y), max(x, self.zoom_x), max(y, self.zoom_y)])
@@ -157,8 +190,14 @@ class Outline_Menu(ttk.Frame):
         self.zoom_x, self.zoom_y, self.zoom_func = None, None, None
 
     def add_chosen(self):
+        """
+        Activates contour addition mode.
+        """
         self.chosen(mod='add')
     def add_tap(self, event):
+        """
+        Starts new contour at clicked position.
+        """
         self.root.change.set(1)
         x, y = self.get_point(event)
         self.contour.append([[x, y]])
@@ -167,11 +206,17 @@ class Outline_Menu(ttk.Frame):
         self.viewer.canvas.bind(self.add_keys[0], self.add_mov)
         self.viewer.canvas.bind(self.add_keys[1], self.add_rls)
     def add_mov(self, event):
+        """
+        Draws temporary contour during mouse movement.
+        """
         x, y = self.get_point(event)
         self.contour.append([[x, y]])
 
         self.viewer.draw_contour(add_mask=[np.array(self.contour)])
     def add_rls(self, event):
+        """
+        Finalizes contour addition and updates mask.
+        """
         x, y = self.get_point(event)
         self.contour.append([[x, y]])
         
@@ -187,8 +232,14 @@ class Outline_Menu(ttk.Frame):
         self.contour = []
         
     def del_chosen(self):
+        """
+        Activates contour deletion mode.
+        """
         self.chosen(mod='del')
     def del_tap(self, event):
+        """
+        Starts deletion area at clicked position.
+        """
         self.root.change.set(1)
         x, y = self.get_point(event)
         self.contour.append([[x, y]])
@@ -197,11 +248,17 @@ class Outline_Menu(ttk.Frame):
         self.viewer.canvas.bind(self.del_keys[0], self.del_mov)
         self.viewer.canvas.bind(self.del_keys[1], self.del_rls)
     def del_mov(self, event):
+        """
+        Draws temporary deletion area during mouse movement.
+        """
         x, y = self.get_point(event)
         self.contour.append([[x, y]])
 
         self.viewer.draw_contour(del_mask=[np.array(self.contour)])
     def del_rls(self, event):
+        """
+        Finalizes contour deletion and updates mask.
+        """
         x, y = self.get_point(event)
         self.contour.append([[x, y]])
         
@@ -219,6 +276,9 @@ class Outline_Menu(ttk.Frame):
 
     ### utilitarian fuction ###
     def get_point(self, event):
+        """
+        Converts screen coordinates to image coordinates.
+        """
         pic_range = self.viewer.pic_range if self.pic_range is None else self.pic_range
         pic_ratio = self.viewer.pic_ratio
         x, y = round((event.x-self.viewer.b_width)*pic_ratio), round((event.y-self.viewer.b_height)*pic_ratio)
@@ -227,10 +287,16 @@ class Outline_Menu(ttk.Frame):
         return x, y
     
     def show_cross(self, event):
+        """
+        Displays crosshair at current mouse position.
+        """
         x, y = self.get_point(event)
         self.viewer.draw_contour(cross_loc=[x, y])
 
     def chosen(self, mod):
+        """
+        Manages tool selection state and event bindings.
+        """
         if mod in ["add", self.add_b]:
             button, func = self.add_b, self.add_tap
         elif mod in ["del", self.del_b]:

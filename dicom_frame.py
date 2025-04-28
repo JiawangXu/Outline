@@ -1,4 +1,3 @@
-
 import ttkbootstrap as ttk
 from ttkbootstrap.constants import *
 import re
@@ -55,17 +54,14 @@ class Dicom_Frame(ttk.Frame):
         self.annotation.bind('<Up>', nothing)
         self.annotation.bind('<Down>', nothing)
 
-        # 创建垂直滚动条并与文本框关联
         vertical_scrollbar = ttk.Scrollbar(tv, orient="vertical", command=self.annotation.yview, style=(INFO, ROUND))
         vertical_scrollbar.grid(row=0, column=1, sticky="ns")
         self.annotation.config(yscrollcommand=vertical_scrollbar.set)
 
-        # 创建水平滚动条并与文本框关联
         horizontal_scrollbar = ttk.Scrollbar(tv, orient="horizontal", command=self.annotation.xview, style=(INFO, ROUND))
         horizontal_scrollbar.grid(row=1, column=0, sticky="ew")
         self.annotation.config(xscrollcommand=horizontal_scrollbar.set)
 
-        # 设置行和列的权重
         tv.grid_rowconfigure(0, weight=1)
         tv.grid_columnconfigure(0, weight=1)
         
@@ -83,11 +79,16 @@ class Dicom_Frame(ttk.Frame):
         self.viewer.pack(fill=BOTH, expand=True, pady=10)
         
     def drop_inside_box(self, event):
+        """
+        Handles file drop events, filtering valid paths and triggering directory opening.
+        """
         filedirectory = [data for data in event.data.split(" ") if os.path.exists(data)]
         self.root.opendirectory(filepath=filedirectory)
 
     def set_column_width(self, column_id, percentage, min_width=None, max_width=None):
-        # 计算列的宽度
+        """
+        Dynamically adjusts treeview column width based on percentage and constraints.
+        """
         width = int(self.annotation.winfo_width() * float(percentage))
         if min_width is not None:
             width = max(width, min_width)
