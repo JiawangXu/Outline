@@ -4,7 +4,6 @@ import cv2
 from utils import *
 from PIL import Image, ImageTk, ImageDraw, ImageFont
 import pydicom
-from datetime import datetime
 
 import warnings
 warnings.filterwarnings("ignore")

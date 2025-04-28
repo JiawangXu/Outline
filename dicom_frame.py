@@ -1,6 +1,5 @@
 import ttkbootstrap as ttk
 from ttkbootstrap.constants import *
-import re
 from tkinterdnd2.TkinterDnD import _require
 from tkinterdnd2 import DND_FILES
 import os

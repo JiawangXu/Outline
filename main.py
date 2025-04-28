@@ -5,7 +5,6 @@ import ttkbootstrap as ttk
 from ttkbootstrap.constants import *
 from tkinter import filedialog
 import pydicom
-import cv2
 
 class Main(ttk.Window):
     def __init__(self, title, *args, **kwargs) -> None:
@@ -28,7 +27,7 @@ class Main(ttk.Window):
         self.create_dicom_frame()
         self.create_menu_frame()
         
-        # 设置行和列的权重
+        # Setting Row and Column Weights
         self.grid_rowconfigure(1, weight=1)
 
         # trace variable ###
@@ -39,7 +38,7 @@ class Main(ttk.Window):
         self.bind("<Configure>", self.on_configure)
         self.bind("<KeyRelease>", self.release_press)
 
-        # self.opendirectory([r"E:\Master\outline_datas"])
+        self.opendirectory([r"E:\Master\outline_datas"])
 
     ### create frames ###
     def create_menu_frame(self):

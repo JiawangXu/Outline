@@ -8,8 +8,6 @@ import cv2
 
 import nrrd
 import nibabel as nib
-import json
-import tempfile
 import tarfile
 
 from pydicom.charset import convert_encodings

@@ -1,9 +1,6 @@
 import ttkbootstrap as ttk
 from ttkbootstrap.constants import *
-import os
-from tkinter import filedialog
-from utils import get_files, Button
-import pydicom
+from utils import Button
 import numpy as np
 
 

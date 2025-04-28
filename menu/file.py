@@ -1,9 +1,6 @@
 import ttkbootstrap as ttk
 from ttkbootstrap.constants import *
-import os
-from tkinter import filedialog
-from utils import get_files, Button
-import pydicom
+from utils import Button
 
 
 class File_Menu(ttk.Frame):
@@ -16,7 +13,7 @@ class File_Menu(ttk.Frame):
         
         self.root = root
         self.master = master
-        # self.canvas = root.viewer
+        self.viewer = root.viewer
 
         Button(
             master=self, 
@@ -31,7 +28,7 @@ class File_Menu(ttk.Frame):
             master=self, 
             icons=r'icons\save',
             annotation='Save (CTRL + s)',
-            command=self.root.opendirectory
+            command=self.viewer.save_msk
         ).pack(side=LEFT, padx=5, pady=5)
 
         ttk.Separator(self, orient='vertical').pack(side=LEFT, padx=10, pady=5)
