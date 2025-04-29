@@ -2,7 +2,7 @@ import os
 import tempfile
 import shutil
 import pytest
-from utils import create_folder,get_files,rearrange_numbers
+from utils import create_folder,get_files,rearrange_numbers,get_mask_range
 
 @pytest.fixture
 def temp_dir():
@@ -33,3 +33,18 @@ def test_get_files(temp_dir):
 ])
 def test_rearrange_numbers(input_str, expected):
     assert rearrange_numbers(input_str) == expected
+
+def test_get_mask_range():
+    mask = np.zeros((10, 100, 100), dtype=np.uint8)
+    mask[3:7, 20:80, 20:80] = 1
+
+    first, last = get_mask_range(mask)
+    assert first == 3
+    assert last == 7
+
+
+def test_empty_mask_range():
+    empty_mask = np.zeros((5, 50, 50), dtype=np.uint8)
+    first, last = get_mask_range(empty_mask)
+    assert first == 0
+    assert last == 5
