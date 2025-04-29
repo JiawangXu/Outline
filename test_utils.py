@@ -2,7 +2,7 @@ import os
 import tempfile
 import shutil
 import pytest
-from utils import create_folder,get_files
+from utils import create_folder,get_files,rearrange_numbers
 
 @pytest.fixture
 def temp_dir():
@@ -24,3 +24,12 @@ def test_get_files(temp_dir):
     jpg_files = get_files(temp_dir, ext="jpg")
     assert len(jpg_files) == 2
     assert jpg_files[0].endswith('.jpg')
+
+
+@pytest.mark.parametrize("input_str,expected", [
+    ("AB12CD34", "1234"),
+    ("(0028,1050)", "00281050"),
+    ("NoNumbersHere", ""),
+])
+def test_rearrange_numbers(input_str, expected):
+    assert rearrange_numbers(input_str) == expected
