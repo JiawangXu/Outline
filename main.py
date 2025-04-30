@@ -232,8 +232,6 @@ class Main(ttk.Window):
 if __name__ == '__main__':
     
     parser = argparse.ArgumentParser()
-    parser.add_argument('--path', type=str,
-                        default=r'dcm_data')
     parser.add_argument('--save', type=str,
                         default=r'msk_data')
     parser.add_argument('--height', type=int, default=1200)

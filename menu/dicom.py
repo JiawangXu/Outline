@@ -72,6 +72,7 @@ class Dicom_Menu(ttk.Frame):
         """
         Flips the image horizontally (left-right) and updates the display.
         """
+        self.root.change.set(1)
         self.viewer.mask = self.viewer.mask[:, ::-1]
         self.viewer.show_image()
 
@@ -79,6 +80,7 @@ class Dicom_Menu(ttk.Frame):
         """
         Flips the image vertically (up-down) and updates the display.
         """
+        self.root.change.set(1)
         self.viewer.mask = self.viewer.mask[:, :, ::-1]
         self.viewer.show_image()
 
@@ -86,6 +88,7 @@ class Dicom_Menu(ttk.Frame):
         """
         Reverses the image order and adjusts the current slice index accordingly.
         """
+        self.root.change.set(1)
         self.viewer.mask = self.viewer.mask[::-1]
         page = self.viewer.crt_index.get()
         self.viewer.crt_index.set(len(self.viewer.dicom_paths)-1-page)
@@ -95,5 +98,6 @@ class Dicom_Menu(ttk.Frame):
         """
         Rotates the image 90 degrees counterclockwise and updates the display.
         """
+        self.root.change.set(1)
         self.viewer.mask = np.rot90(self.viewer.mask, k=1, axes=(1, 2))
         self.viewer.show_image()

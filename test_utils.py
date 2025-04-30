@@ -2,6 +2,7 @@ import os
 import tempfile
 import shutil
 import pytest
+import numpy as np
 from utils import create_folder,get_files,rearrange_numbers,get_mask_range
 
 @pytest.fixture

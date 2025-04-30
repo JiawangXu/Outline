@@ -4,21 +4,21 @@
 pip install -r requirements.txt
 ```
 #### 2. Run the code
-+ Run `main.py`
++ Run `python main.py` , and you can add `--save` to change the output path.
 
 + View the GUI like this:  
   ![](./images/gui.png)
 
-+ Click the button under the file to upload images or drag the file into the window  
-  ![](./images/open_file.png)
-
-+ Use the mouse wheel or the up/down arrow keys on the keyboard to switch images.  
++ Click the button under the file menu to upload images or drag the file into the window 
   ![](./images/gui_with_file.png)  
   *The yellow box indicates the annotated area.*
 
-+ You can use the options under the DICOM menu to make some initial adjustments to the delineation.
-  ![](./images/dicom_menu.png)  
++ Use the mouse wheel or the up/down keys on the keyboard to switch images.  
 
-+ Hold down the middle mouse button and drag to adjust the image's window width and window level.
-+ This yellow line is an incorrect annotation and should be deleted(use bottoms under outline) (This feature is not yet implemented)
-+ After completing all annotations, save and export the results(not yet implemented)
++ You can use the options under the DICOM menu to make some initial adjustments to the delineation.
+
++ Hold down the middle mouse button and drag to adjust the image's window width and window center.
+
++ Use Outline Menu for outlining operations. Or hold down CTRL and use the Left click to add and Right click to delete.
+
++ Hold down the ALT key for zoom operations. 

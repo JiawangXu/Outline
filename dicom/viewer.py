@@ -290,7 +290,7 @@ class Viewer(ttk.Frame):
                 lambda v1: f'{decode_func(v1)}',
                 self.yellow, 'ne'),
             (   ['00101001', '00100040'],
-                lambda v1, v2: f'{decode_func(v1)}  {"女" if decode_func(v2)=="F" else "男"}',
+                lambda v1, v2: f'{decode_func(v1)}  {"Female" if decode_func(v2)=="F" else "Male"}',
                 self.yellow, 'ne'),
             (   ['00100010'],
                 lambda v1: f'{decode_func(v1)}',
